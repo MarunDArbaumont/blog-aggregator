@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/MarunDArbaumont/blog-aggregator/internal/config"
 )
@@ -14,14 +15,32 @@ func main() {
 	}
 	fmt.Printf("Read config: %+v\n", cfg)
 
-	err = cfg.SetUser("seraphina")
-	if err != nil {
-		log.Fatalf("couldn't set current user: %v", err)
+	mainState := &state{
+		cfgPointer: cfg,
+	}	
+
+	mainCommands := commands{
+		command: make(map[string]func(*state, command) error),
 	}
 
-	cfg, err = config.Read()
-	if err != nil {
-		log.Fatalf("error reading config: %v", err)
+	mainCommands.register("login", handlerLogin)
+
+	if len(os.Args) < 2 {
+		fmt.Errorf("not enough arguments")
+		os.Exit(1)
 	}
-	fmt.Printf("Read config again: %+v\n", cfg)
+
+	commandName := os.Args[1]
+	commandArgs := os.Args[2:]
+
+	mainCommand := command{
+		name: commandName,
+		args: commandArgs,
+	}
+
+	err = mainCommands.run(mainState, mainCommand)
+	if err != nil {
+		fmt.Printf("%v\n", err)
+		os.Exit(1)
+	}
 }
