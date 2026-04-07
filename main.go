@@ -1,11 +1,15 @@
 package main
 
+import _ "github.com/lib/pq"
+
 import (
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
+	"database/sql"
 
 	"github.com/MarunDArbaumont/blog-aggregator/internal/config"
+	"github.com/MarunDArbaumont/blog-aggregator/internal/database"
 )
 
 func main() {
@@ -13,10 +17,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("error reading config: %v", err)
 	}
-	fmt.Printf("Read config: %+v\n", cfg)
+	// fmt.Printf("Read config: %+v\n", cfg)
+
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		log.Fatalf("error connecting to database: %v", err)
+	}
+	// fmt.Printf("Connected to: %v\n", db)
+	dbQueries := database.New(db)
 
 	mainState := &state{
-		cfgPointer: cfg,
+		db: dbQueries,
+		cfg: cfg,
 	}	
 
 	mainCommands := commands{
@@ -24,10 +36,12 @@ func main() {
 	}
 
 	mainCommands.register("login", handlerLogin)
+	mainCommands.register("register", handlerRegister)
+	mainCommands.register("reset", handlerReset)
+	mainCommands.register("users", handlerUsers)
 
 	if len(os.Args) < 2 {
-		fmt.Errorf("not enough arguments")
-		os.Exit(1)
+		log.Fatalf("not enough arguments")
 	}
 
 	commandName := os.Args[1]
@@ -40,7 +54,6 @@ func main() {
 
 	err = mainCommands.run(mainState, mainCommand)
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
