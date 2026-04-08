@@ -29,7 +29,7 @@ func handlerLogin(s *state, cmd command) error {
 		return fmt.Errorf("No username given")
 	}
 
-	_, err := s.db.GetUser(context.Background(), cmd.args[0])
+	_, err := s.db.GetUserByName(context.Background(), cmd.args[0])
 	if err != nil {
 		return err
 	}
@@ -114,6 +114,55 @@ func handlerAgg(s *state, cmd command) error {
 
 	fmt.Printf("Feed: %+v\n", feed)
 
+	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.args) < 2 {
+		return fmt.Errorf("This command takes two args")
+	}
+
+	currentUser, err := s.db.GetUserByName(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return err
+	}
+
+	newFeedParams := database.CreateFeedParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name: cmd.args[0],
+		Url: cmd.args[1],
+		UserID: currentUser.ID,
+	}
+
+	addedFeed, err := s.db.CreateFeed(context.Background(), newFeedParams)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Feed %+v has been added to database\n", addedFeed)
+
+	return nil
+}
+
+func handlerFeeds(s *state, cmd command) error {
+	if len(cmd.args) > 0 {
+		return fmt.Errorf("This command shouldn't have args")
+	}
+
+	listFeeds, err := s.db.ListFeeds(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range listFeeds {
+		feedUser, err := s.db.GetUserId(context.Background(), feed.UserID)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("* %v: %v (user: %v)\n", feed.Name, feed.Url, feedUser)
+	}
 	return nil
 }
 
