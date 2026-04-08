@@ -39,6 +39,7 @@ func main() {
 	mainCommands.register("register", handlerRegister)
 	mainCommands.register("reset", handlerReset)
 	mainCommands.register("users", handlerUsers)
+	mainCommands.register("agg", handlerAgg)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments")

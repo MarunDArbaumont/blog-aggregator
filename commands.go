@@ -102,6 +102,21 @@ func handlerUsers(s *state, cmd command) error {
 	return nil
 }
 
+func handlerAgg(s *state, cmd command) error {
+	if len(cmd.args) > 0 {
+		return fmt.Errorf("This command shouldn't have args")
+	}
+
+	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Feed: %+v\n", feed)
+
+	return nil
+}
+
 func (c *commands) run(s *state, cmd command) error {
 	commandCallback, exists := c.command[cmd.name]
 	if exists {
