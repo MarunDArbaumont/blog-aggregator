@@ -42,6 +42,8 @@ func main() {
 	mainCommands.register("agg", handlerAgg)
 	mainCommands.register("addfeed", handlerAddFeed)
 	mainCommands.register("feeds", handlerFeeds)
+	mainCommands.register("follow", handlerFollow)
+	mainCommands.register("following", handlerFollowing)
 
 	if len(os.Args) < 2 {
 		log.Fatalf("not enough arguments")
